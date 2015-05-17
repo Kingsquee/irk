@@ -1,0 +1,7 @@
+[package]
+name = "irk"
+version = "0.1.0"
+authors = ["Kingsquee <Kingsquee@users.noreply.github.com>"]
+
+[dependencies]
+irc = "*"
