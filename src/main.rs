@@ -88,7 +88,7 @@ macro_rules! parse_message_for_commands {
 
 fn main() {
 
-    let channel_name = format!("#{}", "shitposting");
+    let channel_name = format!("#{}", "boatdev");
 
     let config = Config {
         nickname: Some(BOT_NAME.to_string()),
@@ -395,8 +395,16 @@ fn make(source_nickname: &str, args: &Vec<&str>, items: &mut HashMap<String, Ite
 
     let item_name = get_item_name(&args[noun_start_index..args.len()]);
 
+    // Detect counterfieting
     if item_name == STARTING_COIN_NAME {
-        return format!("You can't create {}! That's ILLEGAL!.", STARTING_COIN_NAME)
+        return format!("You can't create a {}! That's COUNTERFIETING!.", STARTING_COIN_NAME)
+    }
+
+    // Detect copyright infringement
+    if let Some(existing_item) = items.get(&item_name) {
+        if existing_item.creator_name != source_nickname {
+            return format!("You can't create a {}! That's COPYRIGHT INFRINGEMENT on {}!", item_name, existing_item.creator_name)
+        }
     }
 
     let character;
@@ -473,31 +481,36 @@ fn an(source_nickname: &str, args: &Vec<&str>, items: &mut HashMap<String, Item>
     describe_item(source_nickname, args, items, characters)
 }
 
+/// <item> is <desc>
 fn describe_item(source_nickname: &str, args: &Vec<&str>, items: &mut HashMap<String, Item>, characters: &HashMap<String, Character>) -> String {
     if args.len() < 3 {
         return format!("is wat.")
     }
 
-    let mut cleaned_args = Vec::new();
+    let mut is_pos = 0;
     for i in 0..args.len() {
-        if args[i] != "is" {
-            cleaned_args.push(args[i]);
+        if args[i] == "is" {
+            is_pos = i;
+            break;
         }
     }
 
-    // TODO: Parse multi-word items properly
-    let item_name = args[0];
-    if !items.contains_key(item_name) {
+    if is_pos == 0 {
+        return format!("{}, stop making retarded item names.", source_nickname)
+    }
+
+    let item_name = get_item_name(&args[0..is_pos]);
+    if !items.contains_key(&item_name) {
         return format!("that's bullshit.")
     }
     let mut desc = String::new();
-    for i in 1..cleaned_args.len() {
-        desc.push_str(&format!("{}{}", cleaned_args[i], if i == cleaned_args.len()-1 {""} else {" "}));
+    for i in (is_pos + 1)..args.len() {
+        desc.push_str(&format!("{}{}", args[i], if i == args.len()-1 {""} else {" "}));
     }
 
-    items.get_mut(item_name).unwrap().description = desc;
+    items.get_mut(&item_name).unwrap().description = desc;
 
-    return format!("Interesting. {} have always fascinated me, {}.", item_name, source_nickname);
+    return format!("Interesting. {} have always fascinated me, {}.", &item_name, source_nickname);
 }
 
 /// For describing instances?
@@ -518,7 +531,7 @@ fn equip(source_nickname: &str, args: &Vec<&str>, items: &HashMap<String, Item>,
 fn give(source_nickname: &str, args: &Vec<&str>, items: &HashMap<String, Item>, characters: &mut HashMap<String, Character>) -> String {
     let mut cleaned_args = Vec::new();
     for i in 0..args.len() {
-        if args[i] != "my" && args[i] != "MY" && args[i] != "a" && args[i] != "A" {
+        if args[i] != "my" && args[i] != "MY" && args[i] != "a" && args[i] != "A" && args[i] != "an" && args[i] != "AN" {
             cleaned_args.push(args[i]);
         }
     }
