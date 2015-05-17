@@ -8,6 +8,7 @@ use irc::client::prelude::*;
 use irc::client::data::user::User;
 use std::collections::HashMap;
 
+const COMMAND_PREFIX: &'static str = "!";
 const BOT_NAME: &'static str = "irken";
 const STARTING_COIN_NAME: &'static str = "shit coin";
 const STARTING_COIN_COUNT: u64 = 100;
@@ -54,13 +55,14 @@ macro_rules! parse_message_for_commands {
             //println!("{}", msg);
 
 
+            // TODO: Move these &format!s into const_str macros.
             let mut trimmed_msg;
-            if msg.starts_with("!") {
-                trimmed_msg = msg.trim_left_matches("!");
-            } else if msg.starts_with("irk:") {
-                trimmed_msg = msg.trim_left_matches("irk:");
-            } else if msg.starts_with("irk,") {
-                trimmed_msg = msg.trim_left_matches("irk,");
+            if msg.starts_with(COMMAND_PREFIX) {
+                trimmed_msg = msg.trim_left_matches(COMMAND_PREFIX);
+            } else if msg.starts_with(&format!("{}:", BOT_NAME)) {
+                trimmed_msg = msg.trim_left_matches(&format!("{}:", BOT_NAME));
+            } else if msg.starts_with(&format!("{},", BOT_NAME)) {
+                trimmed_msg = msg.trim_left_matches(&format!("{},", BOT_NAME));
             } else {
                 continue
             }
@@ -88,7 +90,7 @@ macro_rules! parse_message_for_commands {
 
 fn main() {
 
-    let channel_name = format!("#{}", "boatdev");
+    let channel_name = format!("#{}", "shitposting");
 
     let config = Config {
         nickname: Some(BOT_NAME.to_string()),
